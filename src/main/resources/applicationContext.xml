@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--suppress ALL -->
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/context
+        http://www.springframework.org/schema/context/spring-context.xsd
+        http://www.springframework.org/schema/tx
+        http://www.springframework.org/schema/tx/spring-tx.xsd
+        http://www.springframework.org/schema/aop
+        http://www.springframework.org/schema/aop/spring-aop.xsd" >
+        <!--default-lazy-init="true"懒加载模式编译时不进行加载，当使用时通过监听进行加载，不对初始化配置文件验证-->
+    <!--scope="prototype"多例模式每次使用都new一个，scope="singleton"单例模式，使用的都是本身-->
+    <!--<bean id="springDemo" class="com.liangwei.spring.demo.SpringDemo" scope="prototype">-->
+    <!--<property name="userName" value="zhanglingsi"/>-->
+    <!--<property name="password" value="123456"/>-->
+    <!--<property name="age" value="1"/>-->
+    <!--<property name="email" value="zhanglingsi@gmail.com"/>-->
+    <!--</bean>-->
+    <!--<bean id="userDo" class="com.liangwei.spring.demo.UserDo">-->
+        <!--<property name="userName" value="zhangsan"/>-->
+    <!--</bean>-->
+
+    <!--<bean id="springDemo" class="com.liangwei.spring.demo.SpringDemo">-->
+        <!--<constructor-arg type="java.lang.String" value="liangwei"/>-->
+        <!--<constructor-arg type="java.lang.String" value="123456"/>-->
+        <!--<constructor-arg type="java.lang.Integer" value="1"/>-->
+        <!--<constructor-arg type="java.lang.String" value="liangwei@gmail.com"/>-->
+    <!--</bean>-->
+    <!--<bean id="userService" class="com.liangwei.spring.service.impl.UserServiceImpl">-->
+        <!--<property name="userDaosss" ref="userDaoaaa"/>-->
+    <!--</bean>-->
+
+
+    <!--<bean id="userDaoaaa" class="com.liangwei.spring.dao.impl.UserDaoImpl"/>-->
+    <!--初始化的时候扫描包相当于AnnotationConfigApplicationContext annotationContext;-->
+    <context:component-scan base-package="com.liangwei.spring"/>
+
+    <bean id="propertyConfigurer" class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+        <property name="location" value="jdbc.properties"/>
+    </bean>
+    <!--程序执行时初始化spring自带数据库驱动jdbcTemplate-->
+    <bean id="jdbcTemplate" class="org.springframework.jdbc.core.JdbcTemplate">
+        <!--执行dataSource这个bean进行数据库连接-->
+        <property name="dataSource" ref="dataSource"/>
+    </bean>
+
+    <bean id="dataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource" destroy-method="close">
+        <property name="driverClass" value="${c3p0.driverClass}"/>
+        <property name="jdbcUrl" value="${c3p0.url}"/>
+        <property name="user" value="${c3p0.user}"/>
+        <property name="password" value="${c3p0.password}"/>
+        <property name="acquireIncrement" value="${c3p0.acquireIncrement}"/>
+        <property name="initialPoolSize" value="${c3p0.initialPoolSize}"/>
+        <property name="maxIdleTime" value="${c3p0.maxIdleTime}"/>
+        <property name="maxPoolSize" value="${c3p0.maxPoolSize}"/>
+        <property name="minPoolSize" value="${c3p0.minPoolSize}"/>
+        <property name="acquireRetryDelay" value="1000"/>
+        <property name="acquireRetryAttempts" value="60"/>
+        <property name="breakAfterAcquireFailure" value="false"/>
+    </bean>
+    <!--mybatis和spring进行整合-->
+    <!--sqlSessionFactory是把mapper生成bean 加载所有的mapper-->
+    <bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+        <!--连接数据库的依赖-->
+        <property name="dataSource" ref="dataSource"/>
+        <!--属性类-->
+        <property name="typeAliasesPackage" value="com.liangwei.spring.demo"/>
+        <!--获取mapper包下的所有mapper-->
+        <property name="mapperLocations" value="classpath:com/liangwei/spring/mapper/*Mapper.xml"/>
+    </bean>
+    <!--通用mapper生成-->
+    <bean class="tk.mybatis.spring.mapper.MapperScannerConfigurer">
+        <property name="basePackage" value="com.liangwei.spring.mapper"/>
+        <!--实现通用mapper接口-->
+        <property name="markerInterface" value="tk.mybatis.mapper.common.Mapper"/>
+    </bean>
+
+    <!--事务-->
+    <bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+        <property name="dataSource" ref="dataSource"/>
+    </bean>
+
+    <tx:annotation-driven transaction-manager="transactionManager"/>
+</beans>
